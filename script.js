@@ -4,7 +4,6 @@
    ========================================================= */
 
 const radio = document.querySelector(".radio");
-
 const tuningDial = document.getElementById("tuningDial");
 const frequencyDisplay = document.getElementById("frequency");
 const stationName = document.getElementById("stationName");
@@ -22,37 +21,15 @@ const warning = document.getElementById("warning");
 
 
 /* =========================================================
-   RADIO SETTINGS
+   SETTINGS
    ========================================================= */
 
 let radioOn = false;
-
 let currentFrequency = 88.0;
-
 let currentStation = null;
-
-let currentAudio = null;
-
 let stations = [];
-
 let scanTimer = null;
-
 let scanRunning = false;
-
-
-/*
-   How close the player needs to be to a station.
-
-   Example:
-   Station = 94.5
-   Player = 94.50
-
-   Perfect signal.
-
-   Player = 94.55
-
-   Still close enough to hear it.
-*/
 
 const TUNING_RANGE = 0.08;
 
@@ -74,14 +51,12 @@ function updateFrequency() {
         currentFrequency.toFixed(1);
 
     updateSignal();
-
     checkStation();
-
 }
 
 
 /* =========================================================
-   SIGNAL STRENGTH
+   SIGNAL
    ========================================================= */
 
 function updateSignal() {
@@ -89,8 +64,8 @@ function updateSignal() {
     if (!radioOn) {
 
         signalDisplay.textContent = "----------";
-
         return;
+
     }
 
     let strongestSignal = 0;
@@ -103,14 +78,11 @@ function updateSignal() {
         if (distance <= TUNING_RANGE) {
 
             const strength =
-                1 - (distance / TUNING_RANGE);
+                1 - distance / TUNING_RANGE;
 
-            if (strength > strongestSignal) {
-                strongestSignal = strength;
-            }
-
+            strongestSignal =
+                Math.max(strongestSignal, strength);
         }
-
     }
 
 
@@ -119,11 +91,7 @@ function updateSignal() {
         signalDisplay.textContent =
             "░░░░░░░░░░";
 
-        return;
-    }
-
-
-    if (strongestSignal < 0.25) {
+    } else if (strongestSignal < 0.25) {
 
         signalDisplay.textContent =
             "██░░░░░░░░";
@@ -144,31 +112,24 @@ function updateSignal() {
             "██████████";
 
     }
-
 }
 
 
 /* =========================================================
-   STATION CHECK
+   FIND STATION
    ========================================================= */
 
 function checkStation() {
 
-    if (!radioOn) {
-        return;
-    }
-
+    if (!radioOn) return;
 
     let closestStation = null;
-
     let closestDistance = Infinity;
-
 
     for (const station of stations) {
 
         const distance =
             Math.abs(currentFrequency - station.frequency);
-
 
         if (
             distance <= TUNING_RANGE &&
@@ -177,22 +138,21 @@ function checkStation() {
 
             closestDistance = distance;
             closestStation = station;
-
         }
-
     }
 
 
     if (closestStation) {
 
-        tuneToStation(closestStation, closestDistance);
+        tuneToStation(
+            closestStation,
+            closestDistance
+        );
 
     } else {
 
         loseStation();
-
     }
-
 }
 
 
@@ -203,52 +163,27 @@ function checkStation() {
 function tuneToStation(station, distance) {
 
     if (currentStation === station) {
-
-        stationName.textContent =
-            station.name;
-
         return;
     }
 
-
-    stopCurrentAudio();
-
+    stopAudio();
 
     currentStation = station;
 
     stationName.textContent =
         station.name;
 
-
-    if (!station.audio) {
-
-        return;
-    }
-
-
-    playStationAudio(station, distance);
-
+    playStation(station);
 }
 
 
 /* =========================================================
-   PLAY STATION
+   PLAY A SECTION OF AN AUDIO FILE
    ========================================================= */
 
-function playStationAudio(station, distance) {
+function playStation(station) {
 
-    /*
-       Audio files will be supplied by audio1.js
-       and audio2.js later.
-
-       The station object will contain an audio
-       reference that points to one of those files.
-    */
-
-    let audioSource = getAudioSource(station.audio);
-
-
-    if (!audioSource) {
+    if (!station.file) {
 
         stationName.textContent =
             station.name + " — NO AUDIO";
@@ -257,92 +192,68 @@ function playStationAudio(station, distance) {
     }
 
 
-    currentAudio = new Audio();
-
-    currentAudio.src = audioSource;
-
-    currentAudio.volume =
-        Number(volumeSlider.value);
-
-    currentAudio.loop =
-        station.loop === true;
-
-
-    currentAudio.play().catch(() => {
-
-        /*
-           Browsers may block audio until the user
-           interacts with the page.
-
-           The power button already counts as
-           user interaction.
-        */
-
-    });
-
-
-    radioAudio.src = audioSource;
+    radioAudio.src = station.file;
 
     radioAudio.volume =
         Number(volumeSlider.value);
 
+
+    /*
+       Jump to the beginning of this recording
+       inside audio1.mp3 or audio2.mp3.
+    */
+
+    radioAudio.currentTime =
+        station.start;
+
+
+    radioAudio.play().catch(() => {
+        console.log("Waiting for audio permission.");
+    });
 }
 
 
 /* =========================================================
-   AUDIO SOURCE FINDER
+   STOP AUDIO
    ========================================================= */
 
-function getAudioSource(audioName) {
+function stopAudio() {
 
-    if (!audioName) {
-        return null;
-    }
+    radioAudio.pause();
 
-
-    /*
-       audio1.js and audio2.js will create a global
-       AUDIO_LIBRARY object.
-
-       Example:
-
-       AUDIO_LIBRARY = {
-           "tape1": "data:audio/mp3;base64,..."
-       }
-    */
-
-    if (
-        typeof AUDIO_LIBRARY !== "undefined" &&
-        AUDIO_LIBRARY[audioName]
-    ) {
-
-        return AUDIO_LIBRARY[audioName];
-
-    }
-
-
-    /*
-       This also allows normal filenames later
-       if we decide to use them.
-    */
-
-    if (
-        typeof audioName === "string" &&
-        (
-            audioName.includes(".mp3") ||
-            audioName.includes(".wav") ||
-            audioName.includes(".ogg")
-        )
-    ) {
-
-        return audioName;
-
-    }
-
-
-    return null;
-
+    radioAudio.currentTime = 0;
 }
+
+
+/* =========================================================
+   AUDIO END POSITION
+   ========================================================= */
+
+radioAudio.addEventListener(
+    "timeupdate",
+    function () {
+
+        if (!currentStation) return;
+
+        if (
+            currentStation.end &&
+            radioAudio.currentTime >=
+            currentStation.end
+        ) {
+
+            /*
+               Recording has reached the end of its
+               section inside the combined MP3.
+            */
+
+            radioAudio.pause();
+
+            radioAudio.currentTime =
+                currentStation.start;
+
+        }
+    }
+);
 
 
 /* =========================================================
@@ -353,40 +264,13 @@ function loseStation() {
 
     if (currentStation !== null) {
 
-        stopCurrentAudio();
+        stopAudio();
 
         currentStation = null;
-
     }
-
 
     stationName.textContent =
         "NO SIGNAL";
-
-}
-
-
-/* =========================================================
-   STOP AUDIO
-   ========================================================= */
-
-function stopCurrentAudio() {
-
-    if (currentAudio) {
-
-        currentAudio.pause();
-
-        currentAudio.currentTime = 0;
-
-        currentAudio = null;
-
-    }
-
-
-    radioAudio.pause();
-
-    radioAudio.currentTime = 0;
-
 }
 
 
@@ -425,7 +309,7 @@ function togglePower() {
         powerButton.textContent =
             "POWER";
 
-        stopCurrentAudio();
+        stopAudio();
 
         currentStation = null;
 
@@ -437,8 +321,8 @@ function togglePower() {
 
         staticOverlay.classList.remove("active");
 
+        stopScan();
     }
-
 }
 
 
@@ -448,37 +332,24 @@ function togglePower() {
 
 function updateVolume() {
 
-    const volume =
+    radioAudio.volume =
         Number(volumeSlider.value);
-
-
-    if (currentAudio) {
-        currentAudio.volume = volume;
-    }
-
-
-    radioAudio.volume = volume;
-
 }
 
 
 /* =========================================================
-   SCANNING
+   SCAN
    ========================================================= */
 
 function startScan() {
 
-    if (!radioOn) {
-        return;
-    }
+    if (!radioOn) return;
 
 
     if (scanRunning) {
 
         stopScan();
-
         return;
-
     }
 
 
@@ -498,21 +369,16 @@ function startScan() {
 
 
         if (frequency > 108.0) {
-
             frequency = 88.0;
-
         }
 
 
         tuningDial.value =
             Math.round(frequency * 10);
 
-
         updateFrequency();
 
-
     }, 70);
-
 }
 
 
@@ -529,14 +395,12 @@ function stopScan() {
         clearInterval(scanTimer);
 
         scanTimer = null;
-
     }
-
 }
 
 
 /* =========================================================
-   TUNING EVENTS
+   CONTROLS
    ========================================================= */
 
 tuningDial.addEventListener(
@@ -544,18 +408,15 @@ tuningDial.addEventListener(
     updateFrequency
 );
 
-
 powerButton.addEventListener(
     "click",
     togglePower
 );
 
-
 scanButton.addEventListener(
     "click",
     startScan
 );
-
 
 volumeSlider.addEventListener(
     "input",
@@ -569,11 +430,9 @@ volumeSlider.addEventListener(
 
 document.addEventListener(
     "keydown",
-    function(event) {
+    function (event) {
 
-        if (!radioOn) {
-            return;
-        }
+        if (!radioOn) return;
 
 
         let value =
@@ -581,79 +440,40 @@ document.addEventListener(
 
 
         if (event.key === "ArrowRight") {
-
             value += 1;
-
         }
-
 
         if (event.key === "ArrowLeft") {
-
             value -= 1;
-
         }
-
 
         if (event.key === "ArrowUp") {
-
             value += 5;
-
         }
 
-
         if (event.key === "ArrowDown") {
-
             value -= 5;
-
         }
 
 
         value =
             Math.max(
                 880,
-                Math.min(
-                    1080,
-                    value
-                )
+                Math.min(1080, value)
             );
 
 
         tuningDial.value =
             value;
 
-
         updateFrequency();
-
     }
 );
 
 
 /* =========================================================
-   INITIAL STATE
+   LOAD STATIONS
    ========================================================= */
-
-radio.classList.add("off");
-
-frequencyDisplay.textContent =
-    "88.0";
-
-stationName.textContent =
-    "RADIO OFF";
-
-signalDisplay.textContent =
-    "----------";
-
-
-/* =========================================================
-   STATION LOADER
-   ========================================================= */
-
-/*
-   stations.txt will be loaded when we create that file.
-
-   This function is intentionally separate so the
-   station system stays easy to modify.
-*/
 
 async function loadStations() {
 
@@ -664,7 +484,9 @@ async function loadStations() {
 
 
         if (!response.ok) {
-            throw new Error("stations.txt not found");
+            throw new Error(
+                "stations.txt could not be loaded."
+            );
         }
 
 
@@ -674,21 +496,29 @@ async function loadStations() {
 
         parseStations(text);
 
-
     } catch (error) {
 
-        console.warn(
-            "Station list could not be loaded yet."
-        );
+        console.error(error);
 
+        stationName.textContent =
+            "STATION LIST ERROR";
     }
-
 }
 
 
 /* =========================================================
-   STATION LIST PARSER
+   PARSE STATIONS
    ========================================================= */
+
+/*
+   New format:
+
+   frequency|name|audio file|start|end
+
+   Example:
+
+   92.1|STACY'S MOM|audio1.mp3|11.448|210.840
+*/
 
 function parseStations(text) {
 
@@ -705,10 +535,7 @@ function parseStations(text) {
             line.trim();
 
 
-        if (!trimmed) {
-            continue;
-        }
-
+        if (!trimmed) continue;
 
         if (trimmed.startsWith("#")) {
             continue;
@@ -719,7 +546,7 @@ function parseStations(text) {
             trimmed.split("|");
 
 
-        if (parts.length < 3) {
+        if (parts.length < 5) {
             continue;
         }
 
@@ -732,11 +559,24 @@ function parseStations(text) {
             parts[1].trim();
 
 
-        const audio =
+        const file =
             parts[2].trim();
 
 
-        if (Number.isNaN(frequency)) {
+        const start =
+            Number(parts[3]);
+
+
+        const end =
+            Number(parts[4]);
+
+
+        if (
+            Number.isNaN(frequency) ||
+            Number.isNaN(start) ||
+            Number.isNaN(end)
+        ) {
+
             continue;
         }
 
@@ -747,18 +587,34 @@ function parseStations(text) {
 
             name: name,
 
-            audio: audio,
+            file: file,
 
-            loop: false
+            start: start,
+
+            end: end
 
         });
-
     }
 
 
     updateFrequency();
-
 }
+
+
+/* =========================================================
+   INITIAL STATE
+   ========================================================= */
+
+radio.classList.add("off");
+
+frequencyDisplay.textContent =
+    "88.0";
+
+stationName.textContent =
+    "RADIO OFF";
+
+signalDisplay.textContent =
+    "----------";
 
 
 /* =========================================================
