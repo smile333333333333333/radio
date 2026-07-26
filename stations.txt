@@ -1,12 +1,13 @@
 ```text
 # H.E.E. RADIO STATIONS
 # FORMAT:
-# frequency|station name|audio key
+# frequency|station name|audio file|start time|end time
 
-89.7|UNKNOWN TRANSMISSION|message_01
-92.1|STACY'S MOM|stacys_mom
-95.6|JESSIE'S GIRL|jessies_girl
-98.4|WAITING FOR MY RUCA|waiting_for_my_ruca
-101.7|WHAT I GOT|what_i_got
-105.3|SANTERIA|santeria
+89.7|UNKNOWN TRANSMISSION|audio1.mp3|0|11.448
+92.1|STACY'S MOM|audio1.mp3|11.448|210.841
+95.6|JESSIE'S GIRL|audio1.mp3|210.841|511.944
+
+98.4|WAITING FOR MY RUCA|audio2.mp3|0|138.945
+101.7|WHAT I GOT|audio2.mp3|138.945|310.073
+105.3|SANTERIA|audio2.mp3|310.073|496.379
 ```
