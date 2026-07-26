@@ -1,0 +1,12 @@
+```text
+# H.E.E. RADIO STATIONS
+# FORMAT:
+# frequency|station name|audio key
+
+89.7|UNKNOWN TRANSMISSION|message_01
+92.1|STACY'S MOM|stacys_mom
+95.6|JESSIE'S GIRL|jessies_girl
+98.4|WAITING FOR MY RUCA|waiting_for_my_ruca
+101.7|WHAT I GOT|what_i_got
+105.3|SANTERIA|santeria
+```
