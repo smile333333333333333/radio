@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>H.E.E. Radio</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <main class="radio">
+
+        <div class="radio-top">
+            <div class="brand">
+                H.E.E.
+            </div>
+
+            <div class="radio-name">
+                EMPLOYEE RADIO
+            </div>
+
+            <div class="power-light" id="powerLight"></div>
+        </div>
+
+
+        <section class="radio-screen">
+
+            <div class="screen-label">
+                FREQUENCY
+            </div>
+
+            <div class="frequency" id="frequency">
+                88.0
+            </div>
+
+            <div class="unit">
+                MHz
+            </div>
+
+            <div class="station-name" id="stationName">
+                NO SIGNAL
+            </div>
+
+            <div class="signal" id="signal">
+                ░░░░░░░░░░
+            </div>
+
+        </section>
+
+
+        <section class="dial-area">
+
+            <div class="dial-label">
+                TUNING
+            </div>
+
+            <div class="dial">
+
+                <div class="dial-marks">
+                    <span>88</span>
+                    <span>92</span>
+                    <span>96</span>
+                    <span>100</span>
+                    <span>104</span>
+                    <span>108</span>
+                </div>
+
+                <input
+                    type="range"
+                    id="tuningDial"
+                    min="880"
+                    max="1080"
+                    value="880"
+                    step="1"
+                >
+
+                <div class="dial-pointer"></div>
+
+            </div>
+
+        </section>
+
+
+        <section class="controls">
+
+            <button id="powerButton">
+                POWER
+            </button>
+
+            <button id="scanButton">
+                SCAN
+            </button>
+
+            <div class="volume-control">
+
+                <label for="volume">
+                    VOLUME
+                </label>
+
+                <input
+                    type="range"
+                    id="volume"
+                    min="0"
+                    max="1"
+                    value="0.7"
+                    step="0.01"
+                >
+
+            </div>
+
+        </section>
+
+
+        <section class="speaker">
+
+            <div class="speaker-lines"></div>
+            <div class="speaker-lines"></div>
+            <div class="speaker-lines"></div>
+            <div class="speaker-lines"></div>
+            <div class="speaker-lines"></div>
+            <div class="speaker-lines"></div>
+            <div class="speaker-lines"></div>
+            <div class="speaker-lines"></div>
+            <div class="speaker-lines"></div>
+            <div class="speaker-lines"></div>
+
+        </section>
+
+
+        <div class="bottom-label">
+            H.E.E. INTERNAL COMMUNICATION NETWORK
+        </div>
+
+    </main>
+
+
+    <div id="staticOverlay"></div>
+
+
+    <div class="warning" id="warning">
+        SIGNAL LOST
+    </div>
+
+
+    <!-- Audio player controlled by JavaScript -->
+    <audio id="radioAudio"></audio>
+
+
+    <script src="audio1.js"></script>
+    <script src="audio2.js"></script>
+    <script src="effects.js"></script>
+    <script src="secrets.js"></script>
+    <script src="script.js"></script>
+
+</body>
+</html>
